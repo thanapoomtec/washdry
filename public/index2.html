@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laundry Payment System</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">🚀 Laundry Payment System</h1>
+    <div class="form-container">
+      <button id="washBtn" class="tab-button active">Wash Clothes</button>
+      <button id="dryBtn" class="tab-button">Dry Clothes</button>
+      <form id="laundryForm">
+        <select id="shopid" required>
+          <option value="">เลือกสาขาที่จะซัก</option>
+          <option value="2">Wash Happen-ชมดอย เชียงใหม่</option>
+          <option value="5">Wash Happen-ช่างเคี่ยน เชียงใหม่</option>
+          <option value="25">One day Wash-หน้าม.พะเยา</option>
+          <option value="7">ร้านซัก ณ.ชมจันทร์ เชียงใหม่</option>
+          <option value="3">Meow Maid Wash&Dry แม่โจ้เชียงใหม่</option>
+          <!-- Add more shops as needed -->
+        </select>
+
+        <select id="macid" required disabled>
+          <option value="">เลือกเครื่อง</option>
+          <!-- Machines will be populated based on the selected shop -->
+        </select>
+
+        <select id="optionid" required>
+          <option value="">เลือก อุณหภูมิน้ำ</option>
+          <option value="C">นำเย็น</option>
+          <option value="W">นำอุ่น</option>
+          <option value="H">น้ำร้อน</option>
+          <option value="N">สำหรับอบหรือล้างถังซักผ้า</option>
+        </select>
+
+        <input type="number" id="macprice" placeholder="Enter price (1-200)" min="1" max="200" required>
+
+        <button type="submit" class="pay-button">Pay</button>
+      </form>
+    </div>
+
+    <!-- Modal for Notification -->
+    <div id="notificationModal" class="modal hidden">
+      <div class="rocket-animation" id="rocketAnimation"></div>
+      <div class="modal-content">
+        <h2>🚀 420Bishak:Alert Status</h2>
+        <p id="notificationMessage">Loading your payment...</p>
+        <button id="closeModal" class="close-button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Object containing machine data for each shop, categorized by wash and dry machines
+    const shopMachines = {
+      "2": {
+        wash: [1, ,2 ,3 ,4 ,5 ,6 ,7 ,14],  // Wash Happen-ชมดอย - เครื่องซักผ้า
+        dry: [8, ,9 ,10 ,11 ,12 ,13 ,15]    // Wash Happen-ชมดอย - เครื่องอบผ้า
+      },
+      "5": {
+        wash: [1, 2, 3],  // Wash Happen-ช่างเคี่ยน - เครื่องซักผ้า
+        dry: [4, 5]       // Wash Happen-ช่างเคี่ยน - เครื่องอบผ้า
+      },
+      "25": {
+        wash: [5, 6],  // One day Wash-หน้าม.พะเยา - เครื่องซักผ้า
+        dry: [7, 8]    // One day Wash-หน้าม.พะเยา - เครื่องอบผ้า
+      },
+      "7": {
+        wash: [10, 11],  // ร้านซัก ณ.ชมจันทร์ - เครื่องซักผ้า
+        dry: [12, 13]    // ร้านซัก ณ.ชมจันทร์ - เครื่องอบผ้า
+      },
+      "3": {
+        wash: [20, 21],  // Meow Maid Wash&Dry แม่โจ้เชียงใหม่ - เครื่องซักผ้า
+        dry: [22, 23]    // Meow Maid Wash&Dry แม่โจ้เชียงใหม่ - เครื่องอบผ้า
+      }
+    };
+
+    const shopSelect = document.getElementById('shopid');
+    const machineSelect = document.getElementById('macid');
+    const washBtn = document.getElementById('washBtn');
+    const dryBtn = document.getElementById('dryBtn');
+    let currentMachineType = 'wash';  // Default to wash
+
+    // Function to update machine options based on selected shop and machine type (wash/dry)
+    function updateMachineOptions() {
+      const shopId = shopSelect.value;
+      machineSelect.innerHTML = "<option value=''>เลือกเครื่อง</option>";  // Reset machines list
+
+      if (shopId !== "") {
+        const machines = shopMachines[shopId][currentMachineType];
+        if (machines) {
+          machines.forEach(function(machine) {
+            const option = document.createElement('option');
+            option.value = machine;  // Set the value to the machine number
+            option.textContent = currentMachineType === 'wash' ? `เครื่องซักผ้าที่ ${machine}` : `เครื่องอบผ้าที่ ${machine}`;  // Display machine type
+            machineSelect.appendChild(option);
+          });
+        }
+        machineSelect.disabled = false;
+      } else {
+        machineSelect.disabled = true;
+        machineSelect.value = "";
+      }
+    }
+
+    // Change machine type based on the selected button
+    washBtn.addEventListener('click', function() {
+      currentMachineType = 'wash';  // Set to 'wash' when "Wash Clothes" is clicked
+      updateMachineOptions();  // Update machine options
+      washBtn.classList.add('active');  // Highlight the active button
+      dryBtn.classList.remove('active');  // Remove the active class from the other button
+    });
+
+    dryBtn.addEventListener('click', function() {
+      currentMachineType = 'dry';  // Set to 'dry' when "Dry Clothes" is clicked
+      updateMachineOptions();  // Update machine options
+      dryBtn.classList.add('active');  // Highlight the active button
+      washBtn.classList.remove('active');  // Remove the active class from the other button
+    });
+
+    // Update machine options when shop selection changes
+    shopSelect.addEventListener('change', updateMachineOptions);
+
+  </script>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
